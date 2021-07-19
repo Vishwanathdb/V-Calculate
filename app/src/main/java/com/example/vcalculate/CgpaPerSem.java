@@ -3,6 +3,7 @@ package com.example.vcalculate;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -33,11 +34,12 @@ public class CgpaPerSem extends AppCompatActivity {
     EditText extra,extraMarks;
     TextView subList,marksList;
 
-    Button remove,next;
+    Button remove,next,share;
 
-    double marks;
+    double marks,cgpa,percentage;
     double totalCredits,totalMarks;
-    String extension="";
+    String extension="", result="";
+    int number;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,10 +48,9 @@ public class CgpaPerSem extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-        int number = intent.getIntExtra("number",0);
+        number = intent.getIntExtra("number",0);
         int word = intent.getIntExtra("word",0);
-        marks = intent.getDoubleExtra("marks",0);
-        totalCredits = intent.getDoubleExtra("totalCredits",0);
+        result = intent.getStringExtra("result");
 
         sem = findViewById(R.id.sem);
 
@@ -114,6 +115,10 @@ public class CgpaPerSem extends AppCompatActivity {
                 sub[9] = Integer.valueOf(ninthMarks.getText().toString().trim().length()!=0 ? ninthMarks.getText().toString() : "0") * subj.credits.get(subj.subject[number][9]);
 
 
+                marks = intent.getDoubleExtra("marks",0);
+                totalCredits = intent.getDoubleExtra("totalCredits",0);
+
+
                 int index=0;
                 for(String key:extraList.keySet())
                 {
@@ -133,14 +138,22 @@ public class CgpaPerSem extends AppCompatActivity {
 
                 totalMarks = sub[1] + sub[2] + sub[3] + sub[4] + sub[5] + sub[6] + sub[7] + sub[8] + sub[9] + marks;
 
-                double cgpa = totalMarks / totalCredits;
+                cgpa = totalMarks / totalCredits;
 
                 cgpa = Math.round(cgpa*100.0)/100.0;
 
-                calculate.setText(word+extension+" SEM CGPA IS  "+cgpa);
+                percentage = Math.round(((cgpa-0.75)*10)*100.0)/100.0;
+
+                if(percentage<0)
+                    percentage=0.0;
+
+                calculate.setText(word+extension+" SEM CGPA IS  "+cgpa+" ("+percentage+"%)");
 
                 next = findViewById(R.id.next);
                 next.setEnabled(true);
+                share = findViewById(R.id.share);
+                share.setEnabled(true);
+
             }
         });
 
@@ -155,6 +168,7 @@ public class CgpaPerSem extends AppCompatActivity {
                 i1.putExtra("number",(number+1));
                 i1.putExtra("totalCredits",(totalCredits));
                 i1.putExtra("marks",(totalMarks));
+                i1.putExtra("result",result+number+" "+ extension+" SEM CGPA IS "+cgpa+" ("+percentage+"%)"+"\n");
                 startActivity(i1);
 
             }
@@ -197,6 +211,8 @@ public class CgpaPerSem extends AppCompatActivity {
 
 
     public void remSub(View view) {
+
+
         String item = stack.pop();
         extraList.remove(item);
 
@@ -214,12 +230,77 @@ public class CgpaPerSem extends AppCompatActivity {
             marks=extraList.get(key) +"\n"+marks;
         }
 
+        if(subject.length()==0)
+            subject="No Subject";
+
+        if(marks.length()==0)
+            marks="No Grade";
+
         subList = findViewById(R.id.subList);
         marksList = findViewById(R.id.marksList);
 
         subList.setText(subject);
         marksList.setText(marks);
 
+    }
+
+    public void clear(View view)
+    {
+        firstMarks = findViewById(R.id.firstMarks);
+        secondMarks = findViewById(R.id.secondMarks);
+        thirdMarks = findViewById(R.id.thirdMarks);
+        fourthMarks = findViewById(R.id.fourthMarks);
+        fifthMarks = findViewById(R.id.fifthMarks);
+        sixthMarks = findViewById(R.id.sixthMarks);
+        seventhMarks = findViewById(R.id.seventhMarks);
+        eigthMarks = findViewById(R.id.eigthMarks);
+        ninthMarks = findViewById(R.id.ninthMarks);
+
+
+        firstMarks.setText("");
+        secondMarks.setText("");
+        thirdMarks.setText("");
+        fourthMarks.setText("");
+        fifthMarks.setText("");
+        sixthMarks.setText("");
+        seventhMarks.setText("");
+        eigthMarks.setText("");
+        ninthMarks.setText("");
+
+        stack.clear();
+        extraList.clear();
+
+        subList = findViewById(R.id.subList);
+        marksList = findViewById(R.id.marksList);
+
+        subList.setText("No Subject");
+        marksList.setText("No Grade");
+
+
+        next = findViewById(R.id.next);
+        next.setEnabled(false);
+
+        calculate = findViewById(R.id.calculate);
+        calculate.setText("SEE CGPA");
+
+        remove = findViewById(R.id.remove);
+        remove.setEnabled(false);
+
+        share = findViewById(R.id.share);
+        share.setEnabled(false);
+    }
+
+    public void share(View view)
+    {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setData(Uri.parse("mailto:"));//Handled by mails app only
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_SUBJECT,"CGPA Till "+ number + extension+" SEM");
+        intent.putExtra(Intent.EXTRA_TEXT,result+number+" "+ extension+" SEM CGPA IS "+cgpa+" ("+percentage+"%)"+"\n");
+        if(intent.resolveActivity(getPackageManager()) != null)
+        {
+            startActivity(intent);
+        }
     }
 
 }

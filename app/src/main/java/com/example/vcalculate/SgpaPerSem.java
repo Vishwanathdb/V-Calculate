@@ -1,6 +1,7 @@
 package com.example.vcalculate;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -36,7 +37,11 @@ public class SgpaPerSem extends AppCompatActivity {
     EditText extra,extraMarks;
     TextView subList,marksList;
 
-    Button remove;
+    Button remove,next,share;
+
+    int number;
+    String word;
+    double sgpa,percentage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +50,8 @@ public class SgpaPerSem extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-          int number = Integer.parseInt(intent.getStringExtra("number"));
-          String word = intent.getStringExtra("word");
+          number = Integer.parseInt(intent.getStringExtra("number"));
+          word = intent.getStringExtra("word");
 
           sem = findViewById(R.id.sem);
           sem.setText(word);
@@ -118,11 +123,20 @@ public class SgpaPerSem extends AppCompatActivity {
 
                   double totalMarks = sub1 + sub2 + sub3 + sub4 + sub5 + sub6 + sub7 + sub8 + sub9 + marks;
 
-                  double sgpa = totalMarks / totalCredits;
+                  sgpa = totalMarks / totalCredits;
 
                   sgpa = Math.round(sgpa*100.0)/100.0;
 
-                  calculate.setText(word+" SGPA IS  "+sgpa);
+                  percentage = Math.round(((sgpa-0.75)*10)*100.0)/100.0;
+
+                  if(percentage<0)
+                      percentage=0.0;
+
+                  calculate.setText(word+" SGPA IS  "+sgpa+" ("+percentage+"%)");
+
+                  share = findViewById(R.id.share);
+                  share.setEnabled(true);
+
                 }
             });
 
@@ -187,4 +201,61 @@ public class SgpaPerSem extends AppCompatActivity {
         marksList.setText(marks);
 
     }
+
+    public void clear(View view)
+    {
+        firstMarks = findViewById(R.id.firstMarks);
+        secondMarks = findViewById(R.id.secondMarks);
+        thirdMarks = findViewById(R.id.thirdMarks);
+        fourthMarks = findViewById(R.id.fourthMarks);
+        fifthMarks = findViewById(R.id.fifthMarks);
+        sixthMarks = findViewById(R.id.sixthMarks);
+        seventhMarks = findViewById(R.id.seventhMarks);
+        eigthMarks = findViewById(R.id.eigthMarks);
+        ninthMarks = findViewById(R.id.ninthMarks);
+
+
+        firstMarks.setText("");
+        secondMarks.setText("");
+        thirdMarks.setText("");
+        fourthMarks.setText("");
+        fifthMarks.setText("");
+        sixthMarks.setText("");
+        seventhMarks.setText("");
+        eigthMarks.setText("");
+        ninthMarks.setText("");
+
+        stack.clear();
+        extraList.clear();
+
+        subList = findViewById(R.id.subList);
+        marksList = findViewById(R.id.marksList);
+
+        subList.setText("No Subject");
+        marksList.setText("No Grade");
+
+
+        calculate = findViewById(R.id.calculate);
+        calculate.setText("SEE SGPA");
+
+        remove = findViewById(R.id.remove);
+        remove.setEnabled(false);
+
+        share = findViewById(R.id.share);
+        share.setEnabled(false);
+    }
+
+    public void share(View view)
+    {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setData(Uri.parse("mailto:"));//Handled by mails app only
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_SUBJECT,word+" SGPA ");
+        intent.putExtra(Intent.EXTRA_TEXT,word+" SGPA IS  "+sgpa+" ("+percentage+"%)");
+        if(intent.resolveActivity(getPackageManager()) != null)
+        {
+            startActivity(intent);
+        }
+    }
+
 }

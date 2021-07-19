@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
                 i1.putExtra("number",1);
                 i1.putExtra("totalCredits",0);
                 i1.putExtra("marks",0);
+                i1.putExtra("result","");
                 startActivity(i1);
 
             }
